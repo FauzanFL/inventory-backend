@@ -5,8 +5,8 @@ from .base import Base
 role_permission = Table(
     "role_permission",
     Base.metadata,
-    Column("role_id", Integer, ForeignKey("role.id", ondelete="CASCADE"), primary_key=True),
-    Column("permission_id", Integer, ForeignKey("permission.id", ondelete="CASCADE"), primary_key=True),
+    Column("role_id", Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
+    Column("permission_id", Integer, ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True),
 )
 
 class Role(Base):
