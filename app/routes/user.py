@@ -16,7 +16,7 @@ def create_user(
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("user:create"))
 ):
-    crud_user.create_user(db, user_in)
+    crud_user.create_user(db, user=user_in)
 
     return SuccessResponse(message="User created successfully")
 
@@ -31,9 +31,18 @@ def get_users(
 def get_user(
     user_id: int, 
     db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user),
     _: bool = Depends(PermissionChecker("user:view"))
 ):
-    return crud_user.get_user(db, user_id)
+    if current_user.role.name == "ADMIN" or current_user.id == user_id:
+        user = crud_user.get_user(db, user_id)
+
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+        return user
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
 @router.patch("/{user_id}", response_model=SuccessResponse)
 def update_user(
@@ -52,8 +61,8 @@ def update_user(
             detail="Not enough permissions",
         )
 
-    db_user = crud_user.update_user(db, user_id=user_id, user_in=user_in)
-    if not db_user:
+    user = crud_user.update_user(db, user_id=user_id, user=user_in)
+    if not user:
         raise HTTPException(status_code=404, detail="User Not Found")
         
     return SuccessResponse(message="User updated successfully")
@@ -64,7 +73,10 @@ def delete_user(
     db: Session = Depends(get_db),
     _: bool = Depends(PermissionChecker("user:delete"))
 ):
-    crud_user.delete_user(db, user_id)
+    user = crud_user.delete_user(db, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User Not Found")
 
     return SuccessResponse(message="User deleted successfully")
 

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.db.session import get_db
-from app.crud import role as crud_role
+from app.crud import role as crud_role, permission as crud_permission
 from app.schemas.role import Role, RoleCreate, RoleUpdate
 from app.schemas.response import SuccessResponse
 from app.models.user import User
@@ -24,7 +24,12 @@ def get_role(
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("role:view"))
 ):
-    return crud_role.get_role(db, role_id)
+    role = crud_role.get_role(db, role_id)
+
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+
+    return role
 
 @router.post("", response_model=SuccessResponse, status_code=status.HTTP_201_CREATED)
 def create_role(
@@ -44,7 +49,10 @@ def update_role(
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("role:update"))
 ):
-    crud_role.update_role(db, role_id, role_in)
+    role = crud_role.update_role(db, role_id, role_in)
+
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
 
     return SuccessResponse(message="Role updated successfully")
 
@@ -54,7 +62,10 @@ def delete_role(
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("role:delete"))
 ):
-    crud_role.delete_role(db, role_id)
+    role = crud_role.delete_role(db, role_id)
+
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
 
     return SuccessResponse(message="Role deleted successfully")
 
@@ -68,13 +79,19 @@ def assign_role_to_user(
 ):  
     role = crud_role.get_role(db, role_id)
 
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+
     if role.name == "ADMIN" and current_user.role.name != "ADMIN":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="Not enough permissions"
         )
     
-    crud_role.assign_role(db, user_id, role_id)
+    user = crud_role.assign_role(db, user_id, role_id)
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return SuccessResponse(message="Role assigned to user successfully")
 
@@ -85,7 +102,15 @@ def add_permission_to_role(
     db: Session = Depends(get_db),
     _: bool = Depends(PermissionChecker("role:add_permission"))
 ):  
-    crud_role.add_permission(db, role_id, permission_id)
+    permission = crud_permission.get_permission(db, permission_id)
+
+    if not permission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Permission not found")
+
+    role = crud_role.add_permission(db, role_id, permission_id)
+
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
 
     return SuccessResponse(message="Permission added to role successfully")
 
@@ -96,7 +121,10 @@ def remove_permission_from_role(
     db: Session = Depends(get_db),
     _: bool = Depends(PermissionChecker("role:remove_permission"))
 ):  
-    crud_role.remove_permission(db, role_id, permission_id)
+    role = crud_role.remove_permission(db, role_id, permission_id)
 
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+    
     return SuccessResponse(message="Permission removed from role successfully")
 

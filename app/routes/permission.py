@@ -24,7 +24,12 @@ def get_permission(
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("permission:view"))
 ):
-    return crud_permission.get_permission(db, permission_id)
+    permission = crud_permission.get_permission(db, permission_id)
+
+    if not permission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Permission not found")
+
+    return permission
 
 @router.post("", response_model=SuccessResponse, status_code=status.HTTP_201_CREATED)
 def create_permission(
@@ -43,7 +48,10 @@ def update_permission(
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("permission:update"))
 ):
-    crud_permission.update_permission(db, permission_id, permission_in)
+    permission = crud_permission.update_permission(db, permission_id, permission_in)
+
+    if not permission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Permission not found")
 
     return SuccessResponse(message="Permission updated successfully")
 
@@ -53,7 +61,10 @@ def delete_permission(
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("permission:delete"))
 ):
-    crud_permission.delete_permission(db, permission_id)
+    permission = crud_permission.delete_permission(db, permission_id)
+
+    if not permission:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Permission not found")
 
     return SuccessResponse(message="Permission deleted successfully")
 

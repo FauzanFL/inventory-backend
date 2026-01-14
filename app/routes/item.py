@@ -18,7 +18,7 @@ def create_item(
     db: Session = Depends(get_db),
     _: bool = Depends(PermissionChecker("item:create"))
 ):
-    crud_item.create_item(db, item_in, user_id=current_user.id)
+    crud_item.create_item(db, item=item_in, user_id=current_user.id)
 
     return SuccessResponse(message="Item created successfully")
 
@@ -50,15 +50,22 @@ def update_item(
     _: bool = Depends(PermissionChecker("item:update"))
 ):
     is_admin = current_user.role.name == "ADMIN"
-    item = crud_item.update_item(db, user_id=current_user.id, item_id=item_id, item=item_in, is_admin=is_admin)
 
+    if not is_admin and item.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to update this item",
+        )
+
+    item = crud_item.get_item(db, item_id=item_id)
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Item not found or you don't have permission",
+            detail="Item not found",
         )
-    else:
-        return SuccessResponse(message="Item updated successfully")
+    crud_item.update_item(db, item_id=item_id, item=item_in)
+    
+    return SuccessResponse(message="Item updated successfully")
 
 @router.delete("/{item_id}", response_model=SuccessResponse)
 def delete_item(
@@ -68,12 +75,22 @@ def delete_item(
     _: bool = Depends(PermissionChecker("item:delete"))
 ):
     is_admin = current_user.role.name == "ADMIN"
-    item = crud_item.delete_item(db, user_id=current_user.id, item_id=item_id, is_admin=is_admin)
+    
+    if not is_admin and item.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to delete this item",
+        )
+
+    item = crud_item.get_item(db, item_id=item_id)
 
     if not item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Item not found or you don't have permission",
+            detail="Item not found",
         )
-    else:
-        return SuccessResponse(message="Item deleted successfully")
+    
+    
+    crud_item.delete_item(db, item_id=item_id)
+    
+    return SuccessResponse(message="Item deleted successfully")
