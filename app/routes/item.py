@@ -56,3 +56,21 @@ def update_item(
         )
     else:
         return item
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _: bool = Depends(PermissionChecker("item:delete"))
+):
+    is_admin = current_user.role.name == "ADMIN"
+    item = crud_item.delete_item(db, user_id=current_user.id, item_id=item_id, is_admin=is_admin)
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found or you don't have permission",
+        )
+    else:
+        return

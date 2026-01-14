@@ -32,3 +32,15 @@ def update_item(db: Session, user_id: int, item_id: int, item: ItemUpdate, is_ad
         db.refresh(db_item)
         
     return db_item
+
+def delete_item(db: Session, user_id: int, item_id: int, is_admin: bool = False):
+    query = db.query(Item).filter(Item.id == item_id)
+
+    if not is_admin:
+        query = query.filter(Item.owner_id == user_id)
+
+    db_item = query.first()
+    if db_item:
+        db.delete(db_item)
+        db.commit()
+    return db_item
