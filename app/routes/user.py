@@ -62,7 +62,6 @@ def update_user(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
     _: bool = Depends(PermissionChecker("user:delete"))
 ):
     crud_user.delete_user(db, user_id)
