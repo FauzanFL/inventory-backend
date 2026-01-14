@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import datetime as dt, timedelta
+import datetime
 from typing import Any, Union
 from jose import jwt
 from .config import settings
 
 import bcrypt
 
-
 def create_access_token(subject: Union[str, Any], role: str) -> str:
-    expire = datetime.now(datetime.timezone.utc) + timedelta(
+    expire = dt.now(datetime.timezone.utc) + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     to_encode = {"exp": expire, "sub": str(subject), "role": role}
