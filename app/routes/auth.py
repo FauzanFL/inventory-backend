@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.core.security import verify_password, create_access_token
 from app.crud import user as crud_user
 from app.schemas.token import Token
+from app.schemas.response import SuccessResponse
 
 router = APIRouter()
 
@@ -28,7 +29,7 @@ def login(
 
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/logout")
+@router.post("/logout", response_model=SuccessResponse)
 def logout(response: Response):
     response.delete_cookie(key="access_token")
-    return {"message": "Successfully logged out"}
+    return SuccessResponse(message="Successfully logged out")

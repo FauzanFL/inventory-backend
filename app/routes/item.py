@@ -5,26 +5,29 @@ from typing import List
 from app.db.session import get_db
 from app.crud import item as crud_item
 from app.schemas.item import Item, ItemCreate, ItemUpdate
+from app.schemas.response import SuccessResponse
 from app.models.user import User
 from app.dependencies import get_current_user, PermissionChecker
 
 router = APIRouter()
 
-@router.post("", response_model=Item, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=SuccessResponse, status_code=status.HTTP_201_CREATED)
 def create_item(
     item_in: ItemCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     _: bool = Depends(PermissionChecker("item:create"))
 ):
-    return crud_item.create_item(db, item_in, user_id=current_user.id)
+    crud_item.create_item(db, item_in, user_id=current_user.id)
+
+    return SuccessResponse(message="Item created successfully")
 
 
 @router.get("", response_model=List[Item])
 def get_items(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user),
-    _: bool = Depends(PermissionChecker("item:view"))
+    _: bool = Depends(PermissionChecker("item:view_all"))
 ):
     if current_user.role.name == "ADMIN":
         return crud_item.get_items(db)
@@ -38,7 +41,7 @@ def get_item(
 ):
     return crud_item.get_item(db, item_id)
 
-@router.patch("/{item_id}", response_model=Item)
+@router.patch("/{item_id}", response_model=SuccessResponse)
 def update_item(
     item_id: int,
     item_in: ItemUpdate,
@@ -55,9 +58,9 @@ def update_item(
             detail="Item not found or you don't have permission",
         )
     else:
-        return item
+        return SuccessResponse(message="Item updated successfully")
 
-@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{item_id}", response_model=SuccessResponse)
 def delete_item(
     item_id: int,
     db: Session = Depends(get_db),
@@ -73,4 +76,4 @@ def delete_item(
             detail="Item not found or you don't have permission",
         )
     else:
-        return
+        return SuccessResponse(message="Item deleted successfully")

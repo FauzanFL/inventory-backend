@@ -5,17 +5,20 @@ from typing import List
 from app.db.session import get_db
 from app.crud import user as crud_user
 from app.schemas.user import User, UserCreate, UserUpdate
+from app.schemas.response import SuccessResponse
 from app.dependencies import get_current_user, PermissionChecker
 
 router = APIRouter()
 
-@router.post("", response_model=User, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=SuccessResponse, status_code=status.HTTP_201_CREATED)
 def create_user(
     user_in: UserCreate, 
     db: Session = Depends(get_db), 
     _: bool = Depends(PermissionChecker("user:create"))
 ):
-    return crud_user.create_user(db, user_in)
+    crud_user.create_user(db, user_in)
+
+    return SuccessResponse(message="User created successfully")
 
 @router.get("", response_model=List[User])
 def get_users(
@@ -32,7 +35,7 @@ def get_user(
 ):
     return crud_user.get_user(db, user_id)
 
-@router.patch("/{user_id}", response_model=User)
+@router.patch("/{user_id}", response_model=SuccessResponse)
 def update_user(
     user_id: int,
     user_in: UserUpdate,
@@ -53,14 +56,16 @@ def update_user(
     if not db_user:
         raise HTTPException(status_code=404, detail="User Not Found")
         
-    return db_user
+    return SuccessResponse(message="User updated successfully")
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{user_id}", response_model=SuccessResponse)
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     _: bool = Depends(PermissionChecker("user:delete"))
 ):
-    return crud_user.delete_user(db, user_id)
+    crud_user.delete_user(db, user_id)
+
+    return SuccessResponse(message="User deleted successfully")
 
