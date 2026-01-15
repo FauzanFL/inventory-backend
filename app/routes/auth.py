@@ -7,6 +7,7 @@ from app.core.security import verify_password, create_access_token
 from app.crud import user as crud_user
 from app.schemas.token import Token
 from app.schemas.response import SuccessResponse
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -25,7 +26,15 @@ def login(
         )
     
     access_token = create_access_token(subject=user.username, role=user.role.name)
-    response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax", secure=False)
+    response.set_cookie(
+        key="access_token", 
+        value=access_token, 
+        httponly=True, 
+        samesite=settings.COOKIE_SAME_SITE, 
+        secure=settings.COOKIE_SECURE,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/"
+    )
 
     return {"access_token": access_token, "token_type": "bearer"}
 
