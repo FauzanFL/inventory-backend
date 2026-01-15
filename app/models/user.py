@@ -10,7 +10,7 @@ class User(Base):
     password = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True, index=True)
 
-    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"))
 
     role = relationship("Role", back_populates="users")
     items = relationship("Item", back_populates="owner")
