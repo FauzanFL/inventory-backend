@@ -25,7 +25,7 @@ def login(
         )
     
     access_token = create_access_token(subject=user.username, role=user.role.name)
-    response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax")
+    response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="lax", secure=False)
 
     return {"access_token": access_token, "token_type": "bearer"}
 
