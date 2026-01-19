@@ -4,11 +4,19 @@ from typing import List
 
 from app.db.session import get_db
 from app.crud import user as crud_user
-from app.schemas.user import User, UserCreate, UserUpdate
+from app.schemas.user import User, UserCreate, UserUpdate, CurrentUser
 from app.schemas.response import SuccessResponse
 from app.dependencies import get_current_user, PermissionChecker
 
 router = APIRouter()
+
+@router.get("/me", response_model=CurrentUser)
+def get_me(current_user: User = Depends(get_current_user)):
+    return CurrentUser(
+        id=current_user.id, 
+        username=current_user.username, 
+        role=current_user.role.name
+    )
 
 @router.post("", response_model=SuccessResponse, status_code=status.HTTP_201_CREATED)
 def create_user(

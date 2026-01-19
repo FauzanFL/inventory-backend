@@ -13,6 +13,11 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
 
+class CurrentUser(BaseModel):
+    id: int
+    username: str
+    role: str
+
 class User(UserBase):
     id: int
     role_id: int
