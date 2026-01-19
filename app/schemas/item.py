@@ -22,3 +22,10 @@ class Item(ItemBase):
 
     class Config:
         from_attributes = True
+
+class ItemPage(BaseModel):
+    items: list[Item]
+    total: int
+    page: int
+    limit: int
+    total_pages: int

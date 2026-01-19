@@ -4,7 +4,7 @@ from typing import List
 
 from app.db.session import get_db
 from app.crud import item as crud_item
-from app.schemas.item import Item, ItemCreate, ItemUpdate
+from app.schemas.item import Item, ItemCreate, ItemUpdate, ItemPage
 from app.schemas.response import SuccessResponse
 from app.models.user import User
 from app.dependencies import get_current_user, PermissionChecker
@@ -23,15 +23,31 @@ def create_item(
     return SuccessResponse(message="Item created successfully")
 
 
-@router.get("", response_model=List[Item])
+@router.get("", response_model=ItemPage)
 def get_items(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user),
+    page: int = 1,
+    limit: int = 10,
     _: bool = Depends(PermissionChecker("item:view_all"))
 ):
-    if current_user.role.name == "ADMIN":
-        return crud_item.get_items(db)
-    return crud_item.get_user_items(db, user_id=current_user.id)
+    offset = (page - 1) * limit
+    is_admin = current_user.role.name == "ADMIN"
+
+    if is_admin:
+        items = crud_item.get_items(db, skip=offset, limit=limit)
+        total = crud_item.get_total_items(db)
+    else:
+        items = crud_item.get_user_items(db, user_id=current_user.id, skip=offset, limit=limit)
+        total = crud_item.get_user_total_items(db, user_id=current_user.id)
+
+    return ItemPage(
+        items=items,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=(total + limit - 1) // limit
+    )
 
 @router.get("/{item_id}", response_model=Item)
 def get_item(

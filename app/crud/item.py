@@ -8,6 +8,12 @@ def get_items(db: Session, skip: int = 0, limit: int = 100):
 def get_user_items(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     return db.query(Item).filter(Item.owner_id == user_id).order_by(Item.id.desc()).offset(skip).limit(limit).all()
 
+def get_total_items(db: Session):
+    return db.query(Item).count()
+
+def get_user_total_items(db: Session, user_id: int):
+    return db.query(Item).filter(Item.owner_id == user_id).count()
+
 def get_item(db: Session, item_id: int):
     return db.query(Item).filter(Item.id == item_id).first()
 
