@@ -3,10 +3,10 @@ from app.models.item import Item
 from app.schemas.item import ItemCreate, ItemUpdate
 
 def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Item).offset(skip).limit(limit).all()
+    return db.query(Item).order_by(Item.id.desc()).offset(skip).limit(limit).all()
 
 def get_user_items(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return db.query(Item).filter(Item.owner_id == user_id).offset(skip).limit(limit).all()
+    return db.query(Item).filter(Item.owner_id == user_id).order_by(Item.id.desc()).offset(skip).limit(limit).all()
 
 def get_item(db: Session, item_id: int):
     return db.query(Item).filter(Item.id == item_id).first()
