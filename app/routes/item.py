@@ -41,7 +41,7 @@ def get_item(
 ):
     return crud_item.get_item(db, item_id)
 
-@router.patch("/{item_id}", response_model=SuccessResponse)
+@router.put("/{item_id}", response_model=SuccessResponse)
 def update_item(
     item_id: int,
     item_in: ItemUpdate,
