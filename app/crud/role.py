@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session, joinedload
 from app.models.rbac import Role, Permission
 from app.models.user import User
-from app.schemas.role import RoleCreate, RoleUpdate, Role as RoleSchema
+from app.schemas.role import RoleCreate, RoleUpdate
 
 def get_roles(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Role).options(joinedload(Role.permissions)).offset(skip).limit(limit).all()
@@ -10,7 +10,7 @@ def get_role(db: Session, role_id: int):
     return db.query(Role).filter(Role.id == role_id).first()
 
 def create_role(db: Session, role: RoleCreate):
-    db_role = RoleSchema(**role.model_dump(exclude_unset=True))
+    db_role = Role(**role.model_dump(exclude_unset=True))
     db.add(db_role)
     db.commit()
     db.refresh(db_role)
