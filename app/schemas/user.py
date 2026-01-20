@@ -20,7 +20,7 @@ class CurrentUser(BaseModel):
 
 class User(UserBase):
     id: int
-    role_id: int
+    role_id: Optional[int] = None
     role: Optional[Role] = None
 
     class Config:
