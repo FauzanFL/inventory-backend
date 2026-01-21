@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.db.session import get_db
 from app.crud import user as crud_user
-from app.schemas.user import User, UserCreate, UserUpdate, CurrentUser, UserPage
+from app.schemas.user import User, UserCreate, UserUpdate, CurrentUser, UserPage, UpdatePassword
 from app.schemas.response import SuccessResponse
 from app.dependencies import get_current_user, PermissionChecker
 
@@ -87,6 +86,29 @@ def update_user(
         raise HTTPException(status_code=404, detail="User Not Found")
         
     return SuccessResponse(message="User updated successfully")
+
+@router.patch("/{user_id}/password", response_model=SuccessResponse)
+def update_user_password(
+    user_id: int,
+    body: UpdatePassword,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _: bool = Depends(PermissionChecker("user:update"))
+):
+    is_admin = current_user.role.name == "ADMIN"
+    is_owner = current_user.id == user_id
+
+    if not (is_admin or is_owner):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    user = crud_user.update_password(db, user_id=user_id, password=body.password)
+    if not user:
+        raise HTTPException(status_code=404, detail="User Not Found")
+        
+    return SuccessResponse(message="User password updated successfully")
 
 @router.delete("/{user_id}", response_model=SuccessResponse)
 def delete_user(

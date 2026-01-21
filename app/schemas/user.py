@@ -32,3 +32,6 @@ class UserPage(BaseModel):
     page: int
     limit: int
     total_pages: int
+
+class UpdatePassword(BaseModel):
+    password: str

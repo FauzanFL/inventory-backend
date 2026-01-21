@@ -34,6 +34,16 @@ def update_user(db: Session, user_id: int, user: UserUpdate):
         db.refresh(db_user)
     return db_user
 
+def update_password(db: Session, user_id: int, password: str):
+    query = db.query(User).filter(User.id == user_id)
+
+    db_user = query.first()
+    if db_user:
+        db_user.password = get_password_hash(password)
+        db.commit()
+        db.refresh(db_user)
+    return db_user
+
 def delete_user(db: Session, user_id: int):
     query = db.query(User).filter(User.id == user_id)
 
