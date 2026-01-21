@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.db.session import get_db
-from app.crud import role as crud_role, permission as crud_permission
-from app.schemas.role import Role, RoleCreate, RoleUpdate, RolePage
+from app.crud import role as crud_role
+from app.schemas.role import Role, RoleCreate, RoleUpdate, RolePage, RolePermissionUpdate
 from app.schemas.response import SuccessResponse
 from app.models.user import User
 from app.dependencies import get_current_user, PermissionChecker
@@ -108,36 +108,24 @@ def assign_role_to_user(
 
     return SuccessResponse(message="Role assigned to user successfully")
 
-@router.post("/{role_id}/permissions/{permission_id}", response_model=SuccessResponse)
-def add_permission_to_role(
+@router.put("/{role_id}/permissions", response_model=SuccessResponse)
+def update_role_permissions(
     role_id: int,
-    permission_id: int,
+    role_permission_in: RolePermissionUpdate,
     db: Session = Depends(get_db),
-    _: bool = Depends(PermissionChecker("role:add_permission"))
-):  
-    permission = crud_permission.get_permission(db, permission_id)
-
-    if not permission:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Permission not found")
-
-    role = crud_role.add_permission(db, role_id, permission_id)
+    _: bool = Depends(PermissionChecker("role:update_permissions"))
+):
+    role = crud_role.get_role(db, role_id)
 
     if not role:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
 
-    return SuccessResponse(message="Permission added to role successfully")
+    updated_role = crud_role.sync_permissions(db, role_id, role_permission_in.permission_ids)
 
-@router.delete("/{role_id}/permissions/{permission_id}", response_model=SuccessResponse)
-def remove_permission_from_role(
-    role_id: int,
-    permission_id: int,
-    db: Session = Depends(get_db),
-    _: bool = Depends(PermissionChecker("role:remove_permission"))
-):  
-    role = crud_role.remove_permission(db, role_id, permission_id)
+    if updated_role is None:
+        raise HTTPException(status_code=400, detail="Failed to update permissions")
 
-    if not role:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
-    
-    return SuccessResponse(message="Permission removed from role successfully")
+    return SuccessResponse(
+        message="Role permissions updated successfully"
+    )
 

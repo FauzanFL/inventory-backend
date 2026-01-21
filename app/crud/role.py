@@ -72,3 +72,17 @@ def remove_permission(db: Session, role_id: int, permission_id: int):
     db.commit()
     db.refresh(role)
     return role
+
+def sync_permissions(db: Session, role_id: int, permission_ids: list[int]):
+    role = db.query(Role).filter(Role.id == role_id).first()
+
+    if not role:
+        return None
+    
+    new_permissions = db.query(Permission).filter(Permission.id.in_(permission_ids)).all()
+
+    role.permissions = new_permissions
+    
+    db.commit()
+    db.refresh(role)
+    return role

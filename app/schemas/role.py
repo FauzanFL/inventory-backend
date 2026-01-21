@@ -26,3 +26,6 @@ class RolePage(BaseModel):
     page: int
     limit: int
     total_pages: int
+
+class RolePermissionUpdate(BaseModel):
+    permission_ids: List[int]

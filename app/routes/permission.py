@@ -15,20 +15,25 @@ router = APIRouter()
 def get_permissions(
     db: Session = Depends(get_db), 
     page: int = 1,
-    limit: int = 10,
+    limit: int | None = None,
     _: bool = Depends(PermissionChecker("permission:view_all"))
 ):
-    offset = (page - 1) * limit
+    if limit is not None:
+        offset = (page - 1) * limit
+        permissions = crud_permission.get_permissions(db, skip=offset, limit=limit)
+    else:
+        permissions = crud_permission.get_permissions(db, skip=0, limit=None)
 
-    permissions = crud_permission.get_permissions(db, skip=offset, limit=limit)
     total = crud_permission.get_total_permissions(db)
+
+    actual_limit = limit if limit else total if total > 0 else 1
 
     return PermissionPage(
         permissions=permissions,
         total=total,
         page=page,
-        limit=limit,
-        total_pages=(total + limit - 1) // limit
+        limit=limit if limit else total,
+        total_pages=(total + actual_limit - 1) // actual_limit
     )
 
 @router.get("/{permission_id}", response_model=Permission)
