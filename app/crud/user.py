@@ -15,7 +15,10 @@ def create_user(db: Session, user: UserCreate):
     return db_user
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(User).offset(skip).limit(limit).all()
+    return db.query(User).order_by(User.id.desc()).offset(skip).limit(limit).all()
+
+def get_total_users(db: Session):
+    return db.query(User).count()
 
 def get_user(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()

@@ -4,7 +4,10 @@ from app.models.user import User
 from app.schemas.role import RoleCreate, RoleUpdate
 
 def get_roles(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Role).options(joinedload(Role.permissions)).offset(skip).limit(limit).all()
+    return db.query(Role).options(joinedload(Role.permissions)).order_by(Role.id.desc()).offset(skip).limit(limit).all()
+
+def get_total_roles(db: Session):
+    return db.query(Role).count()
 
 def get_role(db: Session, role_id: int):
     return db.query(Role).filter(Role.id == role_id).first()

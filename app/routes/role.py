@@ -4,19 +4,32 @@ from typing import List
 
 from app.db.session import get_db
 from app.crud import role as crud_role, permission as crud_permission
-from app.schemas.role import Role, RoleCreate, RoleUpdate
+from app.schemas.role import Role, RoleCreate, RoleUpdate, RolePage
 from app.schemas.response import SuccessResponse
 from app.models.user import User
 from app.dependencies import get_current_user, PermissionChecker
 
 router = APIRouter()
 
-@router.get("", response_model=List[Role])
+@router.get("", response_model=RolePage)
 def get_roles(
     db: Session = Depends(get_db), 
+    page: int = 1,
+    limit: int = 10,
     _: bool = Depends(PermissionChecker("role:view_all"))
 ):
-    return crud_role.get_roles(db)
+    offset = (page - 1) * limit
+
+    roles = crud_role.get_roles(db, skip=offset, limit=limit)
+    total = crud_role.get_total_roles(db)
+
+    return RolePage(
+        roles=roles,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=(total + limit - 1) // limit
+    )
 
 @router.get("/{role_id}", response_model=Role)
 def get_role(

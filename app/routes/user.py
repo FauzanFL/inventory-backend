@@ -4,7 +4,7 @@ from typing import List
 
 from app.db.session import get_db
 from app.crud import user as crud_user
-from app.schemas.user import User, UserCreate, UserUpdate, CurrentUser
+from app.schemas.user import User, UserCreate, UserUpdate, CurrentUser, UserPage
 from app.schemas.response import SuccessResponse
 from app.dependencies import get_current_user, PermissionChecker
 
@@ -28,12 +28,25 @@ def create_user(
 
     return SuccessResponse(message="User created successfully")
 
-@router.get("", response_model=List[User])
+@router.get("", response_model=UserPage)
 def get_users(
     db: Session = Depends(get_db), 
+    page: int = 1,
+    limit: int = 10,
     _: bool = Depends(PermissionChecker("user:view_all"))
 ):
-    return crud_user.get_users(db)
+    offset = (page - 1) * limit
+
+    users = crud_user.get_users(db, skip=offset, limit=limit)
+    total = crud_user.get_total_users(db)
+
+    return UserPage(
+        users=users,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=(total + limit - 1) // limit
+    )
 
 @router.get("/{user_id}", response_model=User)
 def get_user(

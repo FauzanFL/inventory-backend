@@ -4,7 +4,10 @@ from app.schemas.permission import PermissionCreate, PermissionUpdate
 
 
 def get_permissions(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Permission).offset(skip).limit(limit).all()
+    return db.query(Permission).order_by(Permission.id.desc()).offset(skip).limit(limit).all()
+
+def get_total_permissions(db: Session):
+    return db.query(Permission).count()
 
 def get_permission(db: Session, permission_id: int):
     return db.query(Permission).filter(Permission.id == permission_id).first()

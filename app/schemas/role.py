@@ -19,3 +19,10 @@ class Role(RoleBase):
 
     class Config:
         from_attributes = True
+
+class RolePage(BaseModel):
+    roles: List[Role]
+    total: int
+    page: int
+    limit: int
+    total_pages: int

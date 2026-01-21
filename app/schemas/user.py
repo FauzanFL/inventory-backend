@@ -25,3 +25,10 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+class UserPage(BaseModel):
+    users: list[User]
+    total: int
+    page: int
+    limit: int
+    total_pages: int

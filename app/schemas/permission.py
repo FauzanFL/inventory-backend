@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 class PermissionBase(BaseModel):
     name: str
@@ -16,3 +16,10 @@ class PermissionCreate(PermissionBase):
 
 class PermissionUpdate(BaseModel):
     description: Optional[str] = None
+
+class PermissionPage(BaseModel):
+    permissions: List[Permission]
+    total: int
+    page: int
+    limit: int
+    total_pages: int

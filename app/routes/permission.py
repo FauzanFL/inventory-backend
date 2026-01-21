@@ -4,19 +4,32 @@ from typing import List
 
 from app.db.session import get_db
 from app.crud import permission as crud_permission
-from app.schemas.permission import Permission, PermissionCreate, PermissionUpdate
+from app.schemas.permission import Permission, PermissionCreate, PermissionUpdate, PermissionPage
 from app.schemas.response import SuccessResponse
 from app.models.user import User
 from app.dependencies import get_current_user, PermissionChecker
 
 router = APIRouter()
 
-@router.get("", response_model=List[Permission])
+@router.get("", response_model=PermissionPage)
 def get_permissions(
     db: Session = Depends(get_db), 
+    page: int = 1,
+    limit: int = 10,
     _: bool = Depends(PermissionChecker("permission:view_all"))
 ):
-    return crud_permission.get_permissions(db)
+    offset = (page - 1) * limit
+
+    permissions = crud_permission.get_permissions(db, skip=offset, limit=limit)
+    total = crud_permission.get_total_permissions(db)
+
+    return PermissionPage(
+        permissions=permissions,
+        total=total,
+        page=page,
+        limit=limit,
+        total_pages=(total + limit - 1) // limit
+    )
 
 @router.get("/{permission_id}", response_model=Permission)
 def get_permission(
