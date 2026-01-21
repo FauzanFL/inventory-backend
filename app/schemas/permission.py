@@ -15,6 +15,7 @@ class PermissionCreate(PermissionBase):
     pass
 
 class PermissionUpdate(BaseModel):
+    name: Optional[str] = None
     description: Optional[str] = None
 
 class PermissionPage(BaseModel):
