@@ -32,12 +32,13 @@ def get_users(
     db: Session = Depends(get_db), 
     page: int = 1,
     limit: int = 10,
+    search: str | None = None,
     _: bool = Depends(PermissionChecker("user:view_all"))
 ):
     offset = (page - 1) * limit
 
-    users = crud_user.get_users(db, skip=offset, limit=limit)
-    total = crud_user.get_total_users(db)
+    users = crud_user.get_users(db, skip=offset, limit=limit, search=search)
+    total = crud_user.get_total_users(db, search=search)
 
     return UserPage(
         users=users,

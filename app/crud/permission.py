@@ -3,11 +3,17 @@ from app.models.rbac import Permission
 from app.schemas.permission import PermissionCreate, PermissionUpdate
 
 
-def get_permissions(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Permission).order_by(Permission.id.desc()).offset(skip).limit(limit).all()
+def get_permissions(db: Session, skip: int = 0, limit: int = 100, search: str = None):
+    query = db.query(Permission)
+    if search:
+        query = query.filter(Permission.name.ilike(f"%{search}%"))
+    return query.order_by(Permission.id.desc()).offset(skip).limit(limit).all()
 
-def get_total_permissions(db: Session):
-    return db.query(Permission).count()
+def get_total_permissions(db: Session, search: str = None):
+    query = db.query(Permission)
+    if search:
+        query = query.filter(Permission.name.ilike(f"%{search}%"))
+    return query.count()
 
 def get_permission(db: Session, permission_id: int):
     return db.query(Permission).filter(Permission.id == permission_id).first()

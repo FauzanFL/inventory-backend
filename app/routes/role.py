@@ -16,12 +16,13 @@ def get_roles(
     db: Session = Depends(get_db), 
     page: int = 1,
     limit: int = 10,
+    search: str | None = None,
     _: bool = Depends(PermissionChecker("role:view_all"))
 ):
     offset = (page - 1) * limit
 
-    roles = crud_role.get_roles(db, skip=offset, limit=limit)
-    total = crud_role.get_total_roles(db)
+    roles = crud_role.get_roles(db, skip=offset, limit=limit, search=search)
+    total = crud_role.get_total_roles(db, search=search)
 
     return RolePage(
         roles=roles,

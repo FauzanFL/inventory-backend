@@ -29,17 +29,18 @@ def get_items(
     current_user = Depends(get_current_user),
     page: int = 1,
     limit: int = 10,
+    search: str | None = None,
     _: bool = Depends(PermissionChecker("item:view_all"))
 ):
     offset = (page - 1) * limit
     is_admin = current_user.role.name == "ADMIN"
 
     if is_admin:
-        items = crud_item.get_items(db, skip=offset, limit=limit)
-        total = crud_item.get_total_items(db)
+        items = crud_item.get_items(db, skip=offset, limit=limit, search=search)
+        total = crud_item.get_total_items(db, search=search)
     else:
-        items = crud_item.get_user_items(db, user_id=current_user.id, skip=offset, limit=limit)
-        total = crud_item.get_user_total_items(db, user_id=current_user.id)
+        items = crud_item.get_user_items(db, user_id=current_user.id, skip=offset, limit=limit, search=search)
+        total = crud_item.get_user_total_items(db, user_id=current_user.id, search=search)
 
     return ItemPage(
         items=items,

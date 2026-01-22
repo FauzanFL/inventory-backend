@@ -1,18 +1,35 @@
 from sqlalchemy.orm import Session
 from app.models.item import Item
 from app.schemas.item import ItemCreate, ItemUpdate
+from sqlalchemy import or_
 
-def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Item).order_by(Item.id.desc()).offset(skip).limit(limit).all()
+def get_items(db: Session, skip: int = 0, limit: int = 100, search: str = None):
+    query = db.query(Item)
 
-def get_user_items(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return db.query(Item).filter(Item.owner_id == user_id).order_by(Item.id.desc()).offset(skip).limit(limit).all()
+    if search:
+        query = query.filter(or_(Item.name.ilike(f"%{search}%"), Item.sku.ilike(f"%{search}%")))
 
-def get_total_items(db: Session):
-    return db.query(Item).count()
+    return query.order_by(Item.id.desc()).offset(skip).limit(limit).all()
 
-def get_user_total_items(db: Session, user_id: int):
-    return db.query(Item).filter(Item.owner_id == user_id).count()
+def get_user_items(db: Session, user_id: int, skip: int = 0, limit: int = 100, search: str = None):
+    query = db.query(Item).filter(Item.owner_id == user_id)
+
+    if search:
+        query = query.filter(or_(Item.name.ilike(f"%{search}%"), Item.sku.ilike(f"%{search}%")))
+
+    return query.order_by(Item.id.desc()).offset(skip).limit(limit).all()
+
+def get_total_items(db: Session, search: str = None):
+    query = db.query(Item)
+    if search:
+        query = query.filter(or_(Item.name.ilike(f"%{search}%"), Item.sku.ilike(f"%{search}%")))
+    return query.count()
+
+def get_user_total_items(db: Session, user_id: int, search: str = None):
+    query = db.query(Item).filter(Item.owner_id == user_id)
+    if search:
+        query = query.filter(or_(Item.name.ilike(f"%{search}%"), Item.sku.ilike(f"%{search}%")))
+    return query.count()
 
 def get_item(db: Session, item_id: int):
     return db.query(Item).filter(Item.id == item_id).first()

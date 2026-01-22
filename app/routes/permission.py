@@ -16,15 +16,16 @@ def get_permissions(
     db: Session = Depends(get_db), 
     page: int = 1,
     limit: int | None = None,
+    search: str | None = None,
     _: bool = Depends(PermissionChecker("permission:view_all"))
 ):
     if limit is not None:
         offset = (page - 1) * limit
-        permissions = crud_permission.get_permissions(db, skip=offset, limit=limit)
+        permissions = crud_permission.get_permissions(db, skip=offset, limit=limit, search=search)
     else:
         permissions = crud_permission.get_permissions(db, skip=0, limit=None)
 
-    total = crud_permission.get_total_permissions(db)
+    total = crud_permission.get_total_permissions(db, search=search)
 
     actual_limit = limit if limit else total if total > 0 else 1
 
